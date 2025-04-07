@@ -1,0 +1,90 @@
+{% extends "courses/base.html" %}
+{% block title %}{{ course.title }}  Course Details{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <div class="card shadow-lg border-0">
+        <div class="card-body">
+            <h2 class="card-title mb-3 text-primary">{{ course.title }}</h2>
+            <p class="card-text text-muted">{{ course.description }}</p>
+
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <h4 class="mb-0">Lessons</h4>
+                <a href="{% url 'courses:lesson_create' %}" class="btn btn-success btn-sm">
+                    <i class="bi bi-plus-circle"></i> Add New Lesson
+                </a>
+            </div>
+
+            {% if lessons %}
+            <ul class="list-group list-group-flush mt-3">
+                {% for lesson in lessons %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div class="d-flex flex-column">
+                        <strong>{{ lesson.title }}</strong>
+                        {% if lesson in student.completed_lessons.all %}
+                        <span class="badge bg-success mt-1"><i class="bi bi-check-circle-fill"></i> Completed</span>
+                        {% else %}
+                        <span class="badge bg-secondary mt-1"><i class="bi bi-hourglass-split"></i> Not Completed</span>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <a href="{% url 'courses:lesson_update' lesson.id %}" class="btn btn-warning btn-sm me-1">
+                            <i class="bi bi-pencil-square"></i> Edit
+                        </a>
+                        <button class="btn btn-danger btn-sm" data-bs-toggle="modal"
+                            data-bs-target="#deleteModal{{ lesson.id }}">
+                            <i class="bi bi-trash"></i> Delete
+                        </button>
+                    </div>
+                </li>
+
+                <!-- Delete Confirmation Modal -->
+                <div class="modal fade" id="deleteModal{{ lesson.id }}" tabindex="-1" aria-labelledby="deleteModalLabel"
+                    aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Confirm Deletion</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                    aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                Are you sure you want to delete "<strong>{{ lesson.title }}</strong>"?
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <form action="{% url 'courses:lesson_delete' lesson.id %}" method="post">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger">Yes, Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </ul>
+
+            <!-- Progress Bar -->
+            <div class="mt-4">
+                {% with total=lessons|length completed=student.completed_lessons.count %}
+                {% widthratio completed total 100 as percent %}
+                <label class="form-label fw-semibold">Progress: {{ progress_percent }}%</label>
+                <div class="progress">
+                    <div class="progress-bar bg-info" role="progressbar" style="width: {{ progress_percent }}%;"
+                        aria-valuenow="{{ progress_percent }}" aria-valuemin="0" aria-valuemax="100">
+                        {{ progress_percent }}%
+                    </div>
+                </div>
+
+                {% endwith %}
+            </div>
+
+            {% else %}
+            <div class="alert alert-info mt-3 text-center">
+                No lessons available for this course yet.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

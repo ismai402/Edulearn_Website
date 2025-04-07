@@ -1,0 +1,37 @@
+{% extends "courses/base.html" %}
+
+{% block title %}{{ lesson.id|default:"Create" }} Lesson{% endblock %}
+
+{% block content %}
+<div class="container mt-5 d-flex justify-content-center">
+    <div class="card shadow-sm" style="max-width: 600px; width: 100%;">
+        <div class="card-body">
+            <h2 class="card-title text-center">{{ lesson.id|default:"Create" }} Lesson</h2>
+
+            <form method="post">
+                {% csrf_token %}
+
+                {% for field in form %}
+                <div class="mb-3">
+                    <label for="{{ field.id_for_label }}" class="form-label">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                    <div class="form-text">{{ field.help_text }}</div>
+                    {% endif %}
+                    {% for error in field.errors %}
+                    <div class="text-danger small">{{ error }}</div>
+                    {% endfor %}
+                </div>
+                {% endfor %}
+
+                <!-- Hidden field for course ID -->
+                <input type="hidden" name="course_id" value="{{ course.id }}">
+
+                <button type="submit" class="btn btn-success w-100 btn-lg">Save Lesson</button>
+            </form>
+
+            <a href="{% url 'courses:course_list' %}" class="btn btn-secondary w-100 mt-3">Back to Courses</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

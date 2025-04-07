@@ -1,0 +1,14 @@
+{% extends "courses/base.html" %}
+{% block title %}Enrollment Successful{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="alert alert-success text-center">
+        <h2>Enrollment Successful!</h2>
+        <p>{{ student.name }}{{ student.email }} has been enrolled in <strong>{{ course.title }}</strong>.</p>
+        <!-- <a href="javascript:history.back()" class="btn btn-primary">Back to Course</a> -->
+        <a href="{% url 'courses:course_list' %}" class="btn btn-primary">Back to Course</a>
+
+    </div>
+</div>
+{% endblock %}

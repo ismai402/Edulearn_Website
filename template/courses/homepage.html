@@ -1,0 +1,99 @@
+{% extends "courses/base.html" %}
+{% block title %}Home - EduLearn{% endblock %}
+{% block content %}
+<!-- Banner Section -->
+<div class="container-fluid bg-primary text-white py-5">
+    <div class="container text-center">
+        <h1 class="display-4">Learn. Grow. Succeed.</h1>
+        <p class="lead">Explore our wide range of courses and take the first step towards your future.</p>
+        <div class="mt-4">
+            <a href="{% url 'courses:course_list' %}" class="btn btn-light btn-lg">Explore Courses</a>
+            <a href="{% url 'courses:register' %}" class="btn btn-outline-light btn-lg">Get Started</a>
+        </div>
+    </div>
+</div>
+
+<!-- Featured Courses Section -->
+<div class="container my-5">
+    <h2 class="text-center mb-4">Featured Courses</h2>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <img src="https://via.placeholder.com/300x200" class="card-img-top" alt="Course 1">
+                <div class="card-body">
+                    <h5 class="card-title">Course 1</h5>
+                    <p class="card-text">Learn the basics of programming with Python.</p>
+                    <a href="#" class="btn btn-primary">Enroll Now</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <img src="https://via.placeholder.com/300x200" class="card-img-top" alt="Course 2">
+                <div class="card-body">
+                    <h5 class="card-title">Course 2</h5>
+                    <p class="card-text">Master web development with Django.</p>
+                    <a href="#" class="btn btn-primary">Enroll Now</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <img src="https://via.placeholder.com/300x200" class="card-img-top" alt="Course 3">
+                <div class="card-body">
+                    <h5 class="card-title">Course 3</h5>
+                    <p class="card-text">Get started with data science and machine learning.</p>
+                    <a href="#" class="btn btn-primary">Enroll Now</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Testimonials Section -->
+<div class="container-fluid bg-light py-5">
+    <div class="container">
+        <h2 class="text-center mb-4">What Our Students Say</h2>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <blockquote class="blockquote mb-0">
+                            <p>"EduLearn changed my life! The courses are well-structured and easy to follow."</p>
+                            <footer class="blockquote-footer">John Doe</footer>
+                        </blockquote>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <blockquote class="blockquote mb-0">
+                            <p>"I landed my dream job thanks to the skills I learned here."</p>
+                            <footer class="blockquote-footer">Jane Smith</footer>
+                        </blockquote>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <blockquote class="blockquote mb-0">
+                            <p>"Highly recommended for anyone looking to upskill."</p>
+                            <footer class="blockquote-footer">Alice Johnson</footer>
+                        </blockquote>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Call to Action Section -->
+<div class="container-fluid bg-primary text-white py-5">
+    <div class="container text-center">
+        <h2 class="mb-4">Ready to Start Your Journey?</h2>
+        <a href="{% url 'courses:register' %}" class="btn btn-light btn-lg">Sign Up Now</a>
+    </div>
+</div>
+{% endblock %}
