@@ -35,18 +35,30 @@ def course_list(request):
 #     return render(request, 'courses/course_detail.html', {'course': course, 'lessons': lessons})
 def course_detail(request, course_id):
     course = get_object_or_404(Course, id=course_id)
+
+    # Get all students enrolled in this course by this user
+    enrolled_students = Student.objects.filter(
+        user=request.user, enrolled_courses=course)
+
+    # Safely get the current student for this user and course
+    # Use first() to avoid MultipleObjectsReturned
+    student = enrolled_students.first()
+
+    # Get all lessons for this course
     lessons = course.lessons.all()
-    student = request.user.student
+
+    # Calculate progress
     total = lessons.count()
-    completed = student.completed_lessons.filter(course=course).count()
-    percent = int((completed / total) * 100) if total > 0 else 0
-    context = {
+    completed = student.completed_lessons.filter(
+        course=course).count() if student else 0
+    progress = int((completed / total) * 100) if total > 0 else 0
+
+    return render(request, 'courses/course_detail.html', {
         'course': course,
         'lessons': lessons,
         'student': student,
-        'progress_percent': percent,
-    }
-    return render(request, 'courses/course_detail.html', context)
+        'progress': progress,
+    })
 
 
 @login_required
@@ -136,14 +148,101 @@ def enroll_student(request):
             student_name = form.cleaned_data['student_name']
             student_email = form.cleaned_data['student_email']
             course = form.cleaned_data['course']
-            student, created = Student.objects.get_or_create(email=student_email)
-            student.name = student_name
-            student.save()
-            student.enrolled_courses.add(course)
-            return render(request, 'courses/enrollment_success.html', {'student': student, 'course': course})
+
+            # Get or create student for current user
+            student, created = Student.objects.get_or_create(
+                user=request.user,
+                email=student_email,
+                defaults={'name': student_name}
+            )
+
+            # Update name if needed
+            if student.name != student_name:
+                student.name = student_name
+                student.save()
+
+            # ✅ Enroll only if not already enrolled
+            if course not in student.enrolled_courses.all():
+                student.enrolled_courses.add(course)
+
+            return render(request, 'courses/enrollment_success.html', {
+                'student': student,
+                'course': course
+            })
     else:
         form = CourseEnrollmentForm()
+
     return render(request, 'courses/enroll_student.html', {'form': form})
+
+
+# def enroll_student(request):
+#     if request.method == "POST":
+#         form = CourseEnrollmentForm(request.POST)
+#         if form.is_valid():
+#             student_name = form.cleaned_data['student_name']
+#             student_email = form.cleaned_data['student_email']
+#             course = form.cleaned_data['course']
+
+#             # Try to find an existing student for this user
+#             student_qs = Student.objects.filter(user=request.user)
+
+#             if student_qs.exists():
+#                 # If multiple exist, pick the latest or first
+#                 student = student_qs.first()  # or use .last() or filter by email
+#                 # Update student details
+#                 student.name = student_name
+#                 student.email = student_email
+#                 student.save()
+#             else:
+#                 # Create a new student record
+#                 student = Student.objects.create(
+#                     user=request.user,
+#                     name=student_name,
+#                     email=student_email
+#                 )
+
+#             # Enroll student in course
+#             student.enrolled_courses.add(course)
+
+#             return render(request, 'courses/enrollment_success.html', {
+#                 'student': student,
+#                 'course': course
+#             })
+#     else:
+#         form = CourseEnrollmentForm()
+
+#     return render(request, 'courses/enroll_student.html', {'form': form})
+
+
+# def enroll_student(request):
+#     if request.method == "POST":
+#         form = CourseEnrollmentForm(request.POST)
+#         if form.is_valid():
+#             student_name = form.cleaned_data['student_name']
+#             student_email = form.cleaned_data['student_email']
+#             course = form.cleaned_data['course']
+
+#             # ✅ Get or create student by email
+#             student, created = Student.objects.get_or_create(email=student_email)
+
+#             # ✅ If student already enrolled in any course, show error
+#             if student.enrolled_courses.exists():
+#                 messages.error(request, "This email is already enrolled in a course.")
+#                 return redirect('course_list')
+
+#             # ✅ Set student name (if new or updating)
+#             student.name = student_name
+#             student.save()
+
+#             # ✅ Add selected course
+#             student.enrolled_courses.add(course)
+#             # ✅ Success message & show confirmation page
+#             messages.success(request, "You have successfully enrolled in {course.title}")
+#             return render(request, 'courses/enrollment_success.html', {'student': student, 'course': course})
+#     else:
+#         form = CourseEnrollmentForm()
+
+#     return render(request, 'courses/enroll_student.html', {'form': form})
 
 
 @login_required

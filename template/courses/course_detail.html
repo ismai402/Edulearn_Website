@@ -1,5 +1,6 @@
 {% extends "courses/base.html" %}
 {% block title %}{{ course.title }} Course Details{% endblock %}
+
 {% block content %}
 <div class="container mt-5">
     <div class="card shadow-lg border-0">
@@ -20,7 +21,7 @@
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                     <div class="d-flex flex-column">
                         <strong>{{ lesson.title }}</strong>
-                        {% if lesson in student.completed_lessons.all %}
+                        {% if student and lesson in student.completed_lessons.all %}
                         <span class="badge bg-success mt-1"><i class="bi bi-check-circle-fill"></i> Completed</span>
                         {% else %}
                         <span class="badge bg-secondary mt-1"><i class="bi bi-hourglass-split"></i> Not Completed</span>
@@ -65,19 +66,14 @@
 
             <!-- Progress Bar -->
             <div class="mt-4">
-                {% with total=lessons|length completed=student.completed_lessons.count %}
-                {% widthratio completed total 100 as percent %}
-                <label class="form-label fw-semibold">Progress: {{ progress_percent }}%</label>
+                <label class="form-label fw-semibold">Progress: {{ progress }}%</label>
                 <div class="progress">
-                    <div class="progress-bar bg-info" role="progressbar" style="width: {{ progress_percent }}%;"
-                        aria-valuenow="{{ progress_percent }}" aria-valuemin="0" aria-valuemax="100">
-                        {{ progress_percent }}%
+                    <div class="progress-bar bg-info" role="progressbar" style="width: {{ progress }}%;"
+                        aria-valuenow="{{ progress }}" aria-valuemin="0" aria-valuemax="100">
+                        {{ progress }}%
                     </div>
                 </div>
-
-                {% endwith %}
             </div>
-
             {% else %}
             <div class="alert alert-info mt-3 text-center">
                 No lessons available for this course yet.
@@ -86,5 +82,4 @@
         </div>
     </div>
 </div>
-
 {% endblock %}
