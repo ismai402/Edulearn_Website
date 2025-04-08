@@ -4,15 +4,21 @@ from .views import register, user_login, user_logout, profile
 from django.contrib.auth import views as auth_views
 from .views import CustomPasswordChangeView
 from django.contrib.auth.views import PasswordChangeDoneView
+from .views import CourseListView, CourseDetailView, CourseCreateView
 
 app_name = 'courses'
 
 urlpatterns = [
     # Course URLs
-    path('', views.course_list, name='course_list'),
-    path('courses/', views.course_list, name='courses'),  # ✅ Use namespace
-    path('courses/<int:course_id>/', views.course_detail, name='course_detail'),
-    path('create/', views.course_create, name='course_create'),
+    # path('', views.course_list, name='course_list'),
+    # path('courses/', views.course_list, name='courses'),  # ✅ Use namespace
+    # path('courses/<int:course_id>/', views.course_detail, name='course_detail'),
+    # path('create/', views.course_create, name='course_create'),
+    path('course_list/', CourseListView.as_view(), name='course_list'),
+    path('courses/', CourseListView.as_view(), name='courses'),
+    path('courses/<int:course_id>/', CourseDetailView.as_view(), name='course_detail'),
+    path('create/', CourseCreateView.as_view(), name='course_create'),
+
     path('update/<int:course_id>/', views.course_update, name='course_update'),
     path('delete/<int:course_id>/', views.course_delete, name='course_delete'),
 

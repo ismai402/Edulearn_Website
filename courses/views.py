@@ -9,69 +9,136 @@ from .models import Course, Lesson, Student
 from .forms import CourseForm, LessonForm, CourseEnrollmentForm, UserUpdateForm
 from django.contrib.auth.views import PasswordChangeView
 from django.urls import reverse_lazy
+from django.views.generic import ListView, DetailView, View
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.generic.edit import CreateView
+from django.utils.decorators import method_decorator
 
 # Course Views
 
 
-# @login_required
-def course_list(request):
-    courses = Course.objects.all()
-    form = CourseForm()
+class CourseListView(LoginRequiredMixin, ListView):
+    model = Course
+    template_name = 'courses/course_list.html'
+    context_object_name = 'courses'
 
-    if request.method == "POST":
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['form'] = CourseForm()
+        return context
+
+    def post(self, request, *args, **kwargs):
         form = CourseForm(request.POST, request.FILES)
         if form.is_valid():
             form.save()
             messages.success(request, "Course created successfully!")
             return redirect('courses:course_list')
+        # If form is invalid, return context with errors
+        context = self.get_context_data()
+        context['form'] = form
+        return render(request, self.template_name, context)
 
-    return render(request, 'courses/course_list.html', {'courses': courses, 'form': form})
+
+class CourseDetailView(LoginRequiredMixin, DetailView):
+    model = Course
+    template_name = 'courses/course_detail.html'
+    context_object_name = 'course'
+    pk_url_kwarg = 'course_id'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        course = self.get_object()
+        lessons = course.lessons.all()
+
+        enrolled_students = Student.objects.filter(
+            user=self.request.user,
+            enrolled_courses=course
+        )
+        student = enrolled_students.first()
+        total = lessons.count()
+        completed = student.completed_lessons.filter(
+            course=course).count() if student else 0
+        progress = int((completed / total) * 100) if total > 0 else 0
+
+        context.update({
+            'lessons': lessons,
+            'student': student,
+            'progress': progress,
+        })
+        return context
 
 
-@login_required
+@method_decorator(login_required, name='dispatch')
+class CourseCreateView(CreateView):
+    model = Course
+    form_class = CourseForm
+    template_name = 'courses/course_form.html'
+    success_url = reverse_lazy('courses:course_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, "Course created successfully!")
+        return super().form_valid(form)
+
+
+# @login_required
+# def course_list(request):
+#     courses = Course.objects.all()
+#     form = CourseForm()
+
+#     if request.method == "POST":
+#         form = CourseForm(request.POST, request.FILES)
+#         if form.is_valid():
+#             form.save()
+#             messages.success(request, "Course created successfully!")
+#             return redirect('courses:course_list')
+
+#     return render(request, 'courses/course_list.html', {'courses': courses, 'form': form})
+
+
+# @login_required
+# # def course_detail(request, course_id):
+# #     course = get_object_or_404(Course, id=course_id)
+# #     lessons = course.lessons.all()
+# #     return render(request, 'courses/course_detail.html', {'course': course, 'lessons': lessons})
 # def course_detail(request, course_id):
 #     course = get_object_or_404(Course, id=course_id)
+
+#     # Get all students enrolled in this course by this user
+#     enrolled_students = Student.objects.filter(
+#         user=request.user, enrolled_courses=course)
+
+#     # Safely get the current student for this user and course
+#     # Use first() to avoid MultipleObjectsReturned
+#     student = enrolled_students.first()
+
+#     # Get all lessons for this course
 #     lessons = course.lessons.all()
-#     return render(request, 'courses/course_detail.html', {'course': course, 'lessons': lessons})
-def course_detail(request, course_id):
-    course = get_object_or_404(Course, id=course_id)
 
-    # Get all students enrolled in this course by this user
-    enrolled_students = Student.objects.filter(
-        user=request.user, enrolled_courses=course)
+#     # Calculate progress
+#     total = lessons.count()
+#     completed = student.completed_lessons.filter(
+#         course=course).count() if student else 0
+#     progress = int((completed / total) * 100) if total > 0 else 0
 
-    # Safely get the current student for this user and course
-    # Use first() to avoid MultipleObjectsReturned
-    student = enrolled_students.first()
-
-    # Get all lessons for this course
-    lessons = course.lessons.all()
-
-    # Calculate progress
-    total = lessons.count()
-    completed = student.completed_lessons.filter(
-        course=course).count() if student else 0
-    progress = int((completed / total) * 100) if total > 0 else 0
-
-    return render(request, 'courses/course_detail.html', {
-        'course': course,
-        'lessons': lessons,
-        'student': student,
-        'progress': progress,
-    })
+#     return render(request, 'courses/course_detail.html', {
+#         'course': course,
+#         'lessons': lessons,
+#         'student': student,
+#         'progress': progress,
+#     })
 
 
-@login_required
-def course_create(request):
-    if request.method == "POST":
-        form = CourseForm(request.POST, request.FILES)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Course created successfully!")
-            return redirect('courses:course_list')
-    else:
-        form = CourseForm()
-    return render(request, 'courses/course_form.html', {'form': form})
+# @login_required
+# def course_create(request):
+#     if request.method == "POST":
+#         form = CourseForm(request.POST, request.FILES)
+#         if form.is_valid():
+#             form.save()
+#             messages.success(request, "Course created successfully!")
+#             return redirect('courses:course_list')
+#     else:
+#         form = CourseForm()
+#     return render(request, 'courses/course_form.html', {'form': form})
 
 
 @login_required
