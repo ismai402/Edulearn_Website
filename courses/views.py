@@ -8,7 +8,6 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from .models import Course, Lesson, Student
 from .forms import CourseForm, LessonForm, CourseEnrollmentForm, UserUpdateForm
 from django.contrib.auth.views import PasswordChangeView
-from django.contrib import messages
 from django.urls import reverse_lazy
 
 # Course Views
@@ -137,8 +136,7 @@ def enroll_student(request):
             student_name = form.cleaned_data['student_name']
             student_email = form.cleaned_data['student_email']
             course = form.cleaned_data['course']
-            student, created = Student.objects.get_or_create(
-                email=student_email)
+            student, created = Student.objects.get_or_create(email=student_email)
             student.name = student_name
             student.save()
             student.enrolled_courses.add(course)
