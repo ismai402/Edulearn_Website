@@ -4,6 +4,7 @@ from .views import register, user_login, user_logout, profile
 from django.contrib.auth import views as auth_views
 from .views import CustomPasswordChangeView
 from django.contrib.auth.views import PasswordChangeDoneView
+from .views import CourseListAPI, CourseDetailAPI, EnrollStudentAPI
 from .views import CourseListView, CourseDetailView, CourseCreateView
 
 app_name = 'courses'
@@ -16,7 +17,9 @@ urlpatterns = [
     # path('create/', views.course_create, name='course_create'),
     path('', CourseListView.as_view(), name='course_list'),
     path('courses/', CourseListView.as_view(), name='courses'),
+    path('api/courses/', CourseListAPI.as_view(), name='api_course_list'),
     path('courses/<int:course_id>/', CourseDetailView.as_view(), name='course_detail'),
+    path('api/courses/<int:pk>/', CourseDetailAPI.as_view(), name='api_course_detail'),
     path('create/', CourseCreateView.as_view(), name='course_create'),
 
     path('update/<int:course_id>/', views.course_update, name='course_update'),
@@ -34,7 +37,7 @@ urlpatterns = [
 
     # Enrollment
     path('enroll/', views.enroll_student, name='enroll_student'),
-
+    path('api/enroll/', EnrollStudentAPI.as_view(), name='api_enroll_student'),
     # Contact Page
     path('contact/', views.contact, name='contact'),
     # Authentication URLs

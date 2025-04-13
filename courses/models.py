@@ -1,10 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import User
-# from courses.models import Course, Lesson, Student
-
-
-# Course model
-
 
 class Course(models.Model):
     title = models.CharField(max_length=200)
@@ -16,8 +11,6 @@ class Course(models.Model):
     def __str__(self):
         return f"{self.title} ({self.duration}h)"
 
-
-# Lesson model
 class Lesson(models.Model):
     course = models.ForeignKey(
         Course, on_delete=models.CASCADE, related_name='lessons')
@@ -29,18 +22,15 @@ class Lesson(models.Model):
     def __str__(self):
         return self.title
 
-
-# Student model
-# models.py
 class Student(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, blank=True, null=True)
     email = models.EmailField()
     enrolled_courses = models.ManyToManyField(Course, related_name='students')
     completed_lessons = models.ManyToManyField('Lesson', blank=True)
 
     class Meta:
-        unique_together = ('user', 'email')  # ✅ no duplicates per user+email
+        unique_together = ('user', 'email')
 
     def __str__(self):
-        return self.name
+        return self.email

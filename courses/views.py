@@ -13,6 +13,10 @@ from django.views.generic import ListView, DetailView, View
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic.edit import CreateView
 from django.utils.decorators import method_decorator
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .serializers import CourseSerializer, EnrollmentSerializer, StudentSerializer
 
 # Course Views
 
@@ -37,6 +41,12 @@ class CourseListView(LoginRequiredMixin, ListView):
         context = self.get_context_data()
         context['form'] = form
         return render(request, self.template_name, context)
+
+class CourseListAPI(APIView):
+    def get(self, request):
+        courses = Course.objects.all()
+        serializer = CourseSerializer(courses, many=True)
+        return Response(serializer.data)
 
 
 class CourseDetailView(LoginRequiredMixin, DetailView):
@@ -67,6 +77,15 @@ class CourseDetailView(LoginRequiredMixin, DetailView):
         })
         return context
 
+class CourseDetailAPI(APIView):
+    def get(self, request, pk):
+        try:
+            course = Course.objects.get(pk=pk)
+        except Course.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
+        serializer = CourseSerializer(course)
+        return Response(serializer.data)
+        
 
 @method_decorator(login_required, name='dispatch')
 class CourseCreateView(CreateView):
@@ -241,6 +260,63 @@ def enroll_student(request):
 
     return render(request, 'courses/enroll_student.html', {'form': form})
 
+class EnrollStudentAPI(APIView):
+    def post(self, request):
+        serializer = EnrollmentSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        if not request.user.is_authenticated:
+            return Response(
+                {"error": "Authentication required"},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+
+        course_id = serializer.validated_data['course_id']
+        student_email = serializer.validated_data['email']
+        custom_name = serializer.validated_data.get('name')  # Get the custom name if provided
+
+        try:
+            course = Course.objects.get(id=course_id)
+        except Course.DoesNotExist:
+            return Response(
+                {"error": "Course not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Determine the name to use
+        name_to_use = custom_name or request.user.get_full_name() or request.user.username
+
+        # Get or create student with user association
+        student, created = Student.objects.get_or_create(
+            user=request.user,
+            email=student_email,
+            defaults={'name': name_to_use}  # Use the determined name
+        )
+
+        # Update name if custom name was provided and different from existing
+        if custom_name and student.name != custom_name:
+            student.name = custom_name
+            student.save()
+
+        # Check if already enrolled
+        if student.enrolled_courses.filter(id=course.id).exists():
+            return Response(
+                {"message": f"{student_email} is already enrolled in this course"},
+                status=status.HTTP_200_OK
+            )
+
+        # Enroll the student
+        student.enrolled_courses.add(course)
+        
+        return Response(
+            {
+                'message': 'Enrollment successful',
+                'student': StudentSerializer(student).data,
+                'course': CourseSerializer(course).data
+            },
+            status=status.HTTP_201_CREATED
+        )
 
 # def enroll_student(request):
 #     if request.method == "POST":
